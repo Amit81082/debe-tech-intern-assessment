@@ -20,9 +20,25 @@ interface BookingRequest {
 // Without awaiting it, the code tries to access `docs` on a Promise,
 // causing a runtime failure and preventing duplicate-slot validation.
 
-export const bookSession = onCall(async (request) => {
+export const bookSession = onCall<BookingRequest>(async (request) => {
   const data = request.data as BookingRequest;
-  const context = request;
+  // BUG:
+  // The function currently accepts unauthenticated requests.
+  // In production, this would allow anyone who can call the
+  // endpoint to create bookings without proving their identity.
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Authentication required");
+  }
+  // BUG:
+  // An authenticated user could still submit another student's ID.
+  // Verify ownership so users cannot create bookings on behalf of
+  // another student.
+  if (request.auth.uid !== data.studentId) {
+    throw new HttpsError(
+      "permission-denied",
+      "You can only book a session for yourself",
+    );
+  }
   const booking = {
     studentId: data.studentId,
     teacherId: data.teacherId,
@@ -40,6 +56,6 @@ export const bookSession = onCall(async (request) => {
     return { success: false, message: "Slot already booked" };
   }
 
-  db.collection("bookings").add(booking);
+  await db.collection("bookings").add(booking);
   return { success: true };
 });
