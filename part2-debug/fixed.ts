@@ -14,7 +14,13 @@ interface BookingRequest {
   slot: string; // ISO datetime string
   subject: string;
 }
-export const bookSession = onCall((request) => {
+
+// BUG:
+// Firestore's get() is asynchronous and returns a Promise.
+// Without awaiting it, the code tries to access `docs` on a Promise,
+// causing a runtime failure and preventing duplicate-slot validation.
+
+export const bookSession = onCall(async (request) => {
   const data = request.data as BookingRequest;
   const context = request;
   const booking = {
@@ -24,11 +30,9 @@ export const bookSession = onCall((request) => {
     subject: data.subject,
     status: "confirmed",
     createdAt: new Date(),
-    
-
   };
   const teacherRef = db.collection("teachers").doc(data.teacherId);
-  const existing = teacherRef
+  const existing = await teacherRef
     .collection("bookings")
     .where("slot", "==", data.slot)
     .get();
