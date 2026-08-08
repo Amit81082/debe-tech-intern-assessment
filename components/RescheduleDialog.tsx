@@ -80,7 +80,10 @@ export function RescheduleDialog({
     setIsLoading(true);
 
     try {
+      // const newDatetime = newSlot;
+      // console.log(newSlot);
       const newDatetime = selectedDate.toISOString();
+      // console.log(newDatetime);
 
       const result: RescheduleResponse = await requestReschedule({
         sessionId: session.id,
