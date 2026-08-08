@@ -16,6 +16,16 @@ export async function requestReschedule(
     };
   }
 
+   const minimumSlot = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+   if (newSlot < minimumSlot) {
+     return {
+       success: false,
+       error: "Reschedules must be requested at least 2 hours in advance.",
+     };
+   }
+
+
   if (newSlot <= now) {
     return {
       success: false,
@@ -29,6 +39,8 @@ export async function requestReschedule(
       error: "The new time must be different from the current session.",
     };
   }
+
+
 
   return {
     success: true,

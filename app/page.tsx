@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Toast } from "@/components/Toast";
 import { sessions as initialSessions } from "@/data/sessions";
 import type { Session } from "@/shared/types";
 import { SessionList } from "@/components/SessionList";
@@ -9,6 +10,7 @@ import { RescheduleDialog } from "@/components/RescheduleDialog";
 export default function Home() {
   const [sessions, setSessions] = useState(initialSessions);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     const savedSessions = localStorage.getItem("sessions");
@@ -25,6 +27,18 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToast("");
+    }, 4000);
+
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
   const handleRescheduleSuccess = (sessionId: string, newDatetime: string) => {
     setSessions((currentSessions) => {
       const updatedSessions = currentSessions.map((session) =>
@@ -39,8 +53,9 @@ export default function Home() {
     });
 
     setSelectedSession(null);
+    setToast("Reschedule request submitted successfully.");
   };
-  
+
   return (
     <main className="min-h-screen bg-gray-50 p-6 md:p-10">
       <div className="mx-auto max-w-3xl">
@@ -60,6 +75,7 @@ export default function Home() {
           />
         )}
       </div>
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </main>
   );
 }
