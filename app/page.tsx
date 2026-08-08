@@ -1,22 +1,31 @@
+"use client";
+
+import { useState } from "react";
 import { sessions } from "@/data/sessions";
+import type { Session } from "@/shared/types";
+import { SessionList } from "@/components/SessionList";
+import { RescheduleDialog } from "@/components/RescheduleDialog";
 
 export default function Home() {
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+
   return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-3xl font-bold">Upcoming Tutoring Sessions</h1>
+    <main className="min-h-screen bg-gray-50 p-6 md:p-10">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="text-3xl font-bold">Upcoming Tutoring Sessions</h1>
 
-      <div className="mt-6 space-y-4">
-        {sessions.map((session) => (
-          <div key={session.id} className="rounded-lg border p-4">
-            <h2 className="text-xl font-semibold">{session.subject}</h2>
+        <p className="mt-2 text-gray-600">
+          View your student's next tutoring sessions.
+        </p>
 
-            <p>Teacher: {session.teacherName}</p>
+        <SessionList sessions={sessions} onReschedule={setSelectedSession} />
 
-            <p>Date: {new Date(session.datetime).toLocaleString()}</p>
-
-            <p>Status: {session.status}</p>
-          </div>
-        ))}
+        {selectedSession && (
+          <RescheduleDialog
+            session={selectedSession}
+            onClose={() => setSelectedSession(null)}
+          />
+        )}
       </div>
     </main>
   );
